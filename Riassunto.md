@@ -444,6 +444,37 @@ Classificare significa individuare una funzione che massimizzi la separazione tr
 
 ## Classificazione lineare con iperpiani
 
+Sono metodi che assumono l'esistenza di separazioni lineari dei dati. Consistono nell'individuazione di _iperpiani di separazione_ delle classi con _programmazione lineare_ oppure con soluzioni iterative, come a.e. _perceptron_, _newton_, _discesa del gradiente_.  
+Un iperpiano _**w⋅x**+b=0_ partiziona lo spazio in 2 parti ed è definito da 2 parametri:
+- _w_ vettore unitario perpendicolare all'iperpiano di separazione
+- _b_ distanza ortogonale dell'iperpiano dall'origine, detta anche intercetta
+
+In 2D un iperpiano è una retta.  
+- Le istanze x<sup>(i)</sup> (vettori) che giacciono sull'iperpiano soddisfano l'equazione _**w⋅x**<sup>(i)</sup>+b=0_, perciò la loro distanza ortogonale dall'origine è _|b|_ ossia ***w⋅x***_(i)=-b_.   
+La distanza ortogonale è uguale alla distanza dalla retta parallela che passa in (0,0) data da ***w⋅x***_=0_.
+- Le istanze ***x***<sup>(+)</sup> tali che _**w⋅x**<sup>(+)</sup>+b>0_ sono della classe (+) al di sopra dell'iperpiano con distanza > -b.
+- Le istanze ***x***<sup>(-)</sup> tali che _**w⋅x**<sup>(-)</sup>+b<0_ sono della classe (-) al di sotto dell'iperpiano.
+
+### Alcune caratteristiche dei classificatori
+
+Esistono molte possibili soluzioni con parametri distinti **w**, b. Alcuni metodi individuano un iperpiano di separazione non ottimale, in base ad un qualche criterio di ottimalità, altri individuano un iperpiano di separazione ottimale.  
+Quali dati influenza la ricerca dell'iperpiano?
+- Tutti i punti nei metodi
+  - Perceptron, Regressione Logistica, Naive Bayes, Regressione lineare con soglia
+- Solo i "punti difficili", a.e. vicini al decision boundary
+  - Support Vector Machines (_SVM_)
+  
+Esistono poi problemi con dati non separabili linearmente, risolvibili con numerosi approcci:
+- Soluzioni che trasformano lo spazio dei dati in modo che le classi diventino separabili linearmente
+  - SVM, Reti neurali...
+- Soluzioni intrinsecamente non lineari
+  - kNN, Decision Tree, RandomForest, Gradient Boosting, XGboost, lightGBM, Catboost...
+  
+In generale, più variabili hanno i dati, più chance ci sono di separare le classi linearmente.
+
+### Perceptron
+
+### Regressione logistica
 
 
 
