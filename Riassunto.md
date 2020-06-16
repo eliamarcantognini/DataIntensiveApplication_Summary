@@ -474,10 +474,134 @@ In generale, più variabili hanno i dati, più chance ci sono di separare le cla
 
 ### Perceptron
 
-### Regressione logistica
+Percpetron è il progenitore delle reti neurali. Converge solo se i dati sono separabili linearmente.  
+Prendiamo come esempio la classificazione di un tumore in maligno/benigno.  
+Variabili di input:
+$$ x_1 = mean\_area \\ x_2 = mean\_concave\_points$$
+Variabile da predire _discreta_:
+$$ y=\begin{cases}
+  -1 \ if \ benign\\
+  +1 \ if \ malign
+\end{cases} $$ 
+
+La separazione lineare delle due classi è data da:
+- Retta di separazione con _w<sub>1</sub>, w<sub>2</sub>, b_ da apprendere
+  - $$ b +w_1x_1+w_2x_2 = 0 $$
+- Le cellule benigne sono le coppie:
+  - $$ x = (x_1,x_2) \ t.c. \ b+w_1x_1+w_2x_2 \lt 0 $$
+- Mentre qulle maggiori o uguali a zero sono maligne, ossia si ha:
+  - $$ y = \begin{cases}
+            -1 \ if \ b+w\cdot{x}\lt0 \\
+            +1 \ if \ b+w\cdot{x}\ge0
+            \end{cases} $$
+
+Come possiamo trovare l'iperpiano di separazione? Dato che ogni istanza è etichettata con -1 o +1, possiamo riscrivere in forma compatta _-y(b+w⋅x)<0_ che darà come risultato un valore negativo se correttamente classificata.  
+Quindi possiamo scrivere _max(0, -y(b+w⋅x)<0) = 0_ che restituisce 0 se l'istanza è correttamente classificata.  
+Di conseguenza possiamo minimizzare l'errore sulle _m_ istanze di training con:
+$$ \underset{b,w}\text{minimize}\sum_{i=1}^m\max(0, -y_i\cdot{h_w(x_i))} \text{ dove } h_w(x_i)=b+w\cdot{x_i}$$
+La funzione suddetta è continua e convessa ma _non derivabile_, perciò il metodo di discesa del gradiente è inapplicabile, inoltre ha un min fittizio per b=w=0.  
+
+#### Logistic Loss
+
+Sostituiamo la funzione di prima _max(0, s)_ con una funzione derivabile. Una sua approssimazione è nota come _softmax(0, s) = log(1+e<sup>s</sup>) che è convessa, continua e derivabile.  
+Perciò minimizzando la somma rispetto a _b_ e _w_ della softmax su tutte le istanze, si minimizza l'errore. Questa formulazione è conosciuta come _logistic loss_ a cui si può aggiungere la regoralizzazione L2 (o L1) dei parametri _w_ con peso λ:
+$$
+  \text{Senza regolarizzazione} \\
+  \underset{b,w}\text{minimize}\sum_{i=1}^m{\log{(1+e^{-y_i\cdot{h_w(x_i)}})}} \\ 
+  \text{Con regolarizzazione L2} \\
+  \underset{b,w}\text{minimize}\sum_{i=1}^m{\log{(1+e^{-y_i\cdot{h_w(x_i)}})} +\frac{\lambda}{2}||w||^2_2}
+$$
+
+## Regressione logistica o Sigmoide
+
+La regressione logistica deriva dalla logistic loss con norma L2 in forma compatta (senza _b_). Può essere considerata la versione moderna del Perceptron.  
+$$ \sigma(t) = \frac{1}{1+e^{-(b+w\cdot{t})}} \\
+\text{Dominio e Codominio: } \R\rarr[0,1]$$
+Il risultato è intepretabile come probabilità di appartenenza di ogni istanza _t_ ad una delle classi, approssima una funzione a gradino.
+
+### Regressione logistica in due classi: multivariata lineare e non lineare
+
+Sia
+$$ x\isin{\R^n} \text{ un'istanza di } x=(x_1,...,x_n) \text{ in } n \text{ variabili}$$
+La funzione di _classificazione lineare multivariata_ è
+$$ \sigma(x_1,...,x_n)=\frac{1}{1+e^{-h_w(x_1,...,x_n)}} \\
+\text{ dove } h_w(x_1,...,x_n)=w_1x_1+...+w_nx_n+b \text{ è l'iperpiano di separazione}$$
+
+La _regressione logistica non lineare_ è, a.e. con grado 2:
+$$ \sigma(x_1,...,x_n)=\frac{1}{1+e^{-h^2_w(x_1,...,x_n)}} \\
+\text{ con } h^2_w(x_1,...,x_n)= \sum_{i=1}^n{w_{i,1}x_i^2}+2\sum_{i=1}^{n-1}{\sum_{j=i+1}^n{w_{i,j}x_ix_j}}$$
+Sul numero di termini generati in n variabili con grado _g_ e non scalabilità, vale quanto già visto nella regressione non lineare. Il problema è stato però superato perché esiste la _Kernel Logistic Regression SVM_.
+
+## Classificazione multiclasse e iperpiani
+Esistono due metodi con _C_ classi:
+- One-Versus-All
+  - Si individuano _C_ iperpiani, uno per ogni classe da separare da tutte le altre, con lo stesso metodo di individuazione di un singolo iperpiano (è parallelizzabile)
+    - $$ b_c+x^Tw_c=0, \ c=1,...,C$$
+  - La regola di fusione è la seguente: ad ogni istanza _x_ si assegna la classe _y_ corrispondente al piano _j_ che massimizza
+    - $$ y=\argmax b_j+x^Tw_j, \ j=1,...,C$$
+- Multinomial
+  - Individua congiuntamente _C_ iperpiani minimizzando la regola di fusione di cui sopra. Quindi, ogni istanza x<sub>p</sub> è classificata correttamente nella propria classe _c_ se
+    - $$ \max_{j=1,...,C}(b_j+x^T_pw_j)-(b_c+x_p^Tw_c)=0$$
+    - la parte sinistra è maggiore di zero solo con errori, perciò è la loss da minimizzare
+  - Per derivarla sostituiamo max con softmax e minimizziamo la seguente funzione
+    - $$ \text{Con  } soft(s_1,...,s_C)=\log{\sum_{j=1}^C}e^{s_j}\\
+    \sum_{c=1}^C\sum_{p\isin\Omega_c}[\max_{j=1,...,C}(b_j+x^T_pw_j)-(b_c+x_p^Tw_c)] = -\sum_{c=1}^C\sum_{p\isin\Omega_c}\log(\frac{e^{b_c+x_p^Tw_c}}{\sum_{j=1}^Ce^{b_j+x_p^Tw_j}})
+    $$
+
+## Classificazione con classi sbilanciate
+
+In molti problemi reali la suddivisione di istane tra classi è molto sbilanciata (a.e. transazioni con carte di credito, lecite >> illecite), di conseguenza si hanno molti più errori di classificazione sulla classe meno rappresentata, spesso con risultati inaccettabili.  
+Una possibile soluzione è quella di aumentare il peso degli errori sulla classe con meno istanze.
+
+## Individuazione dell'iperpiano
+
+L'iperpiano individuato da Perceptron e Regressione logistica è uno dei tanti possibili iperpiani di separazione, finora non abbiamo mai stabilito un criterio per stabilire quale tra le soluzioni sia la migliore, al di là della minimizzazione del numero di errori sul training set. Tuttavia ricordiamo che la regolarizzazione vincola e riduce le possibili soluzioni.  
+Quindi, come definiamo il concetto di migliore?  
+Il numero di soluzioni diminuisce se cerchiamo una separazione lineare con il maggiore margine possibile tra le istanze delle due classi, possiamo quindi individuare l'iperpiano che massimizzi il margine (minore overfitting).  
+L'iperpiano migliore è definito dai punti _difficili_ chiamati _support vectors_, cioè tutti quei punti vicini al _decision boundary_. Se mancassero i restanti punti (tutti i _non_ SV), l'iperpiano calcolato sarebbe il medesimo.  
+A questo punto, il problema diventa risolubile come problema di ottimizzazione quadratica attraverso l'utilizzo delle _Support Vector Machines_.
+
+## Valutazione di modelli di classificazione
+
+I modelli di classificazione si valutano sul test/validation set calcolando una matrice 'Classe reale' X 'Classe Predetta'. 
+
+### Classificazione e tasso di errore
+
+Il tasso di errore calcolato sul training set è inevitabilmente ottimistico rispetto all'errore atteso su nuovi dati. Per questo, i dati nei problemi reali sono suddivisi in tre subset:
+- Training set
+- Validation set, usato per fare il tuning degli iperparametri
+- Test set, utilizzato per simulare il tasso di errore atteso sui nuovi dati
+
+Supponiamo, ora, che un classificatore abbia un tasso di successo sul test set, i.e. accuratezza, del 75%. Quanto è attendibile questa accuratezza sull'intera popolazione dei dati, compresi quelli nuovi ignoti?  
+La risposta non sarà un singolo valore, piuttosto un intervallo: 75% +- ?.  
+L'intervallo di accuratezza dipende dalle dimensioni del test set, ma quanto le dimensioni del test set influenza l'intervallo di accuratezza?  
+In ogni progetto di data science con modelli predittivi, queste misure sono essenziali per valutare l'affidabilità del risultato.  
+
+### Modellazione della classificazione come Processo di Bernoulli
+
+La classificazione di N istanze è modellabile con un processo Bernolulliano di N eventi binari indipendenti: errore o successo.  
+Per esempio, testa o croce nel lancio di una moneta: se con 100 lanci abbiamo 75 teste, qual è la probabilità _p_ di ottenere testa nel prossimo lancio? E dopo 1000 lanci?  
+Siano _N_ gli esperimenti, _S_ i successi. Si ha _f_ = _S_/_N_ --> tasso di successo (accuratezza).  
+_f_ ha distribuzione binomiale _Bin(N, p)_ con media _p_ e varianza _p(1-p)_/_N_, _p_ è la reale accuratezza che vogliamo stimare.  
+Per _N_ grande (>30) la distribuzione di _f_ è approssimabile con la distribuzione normale standardizzata (_distribution z_). La confidenza è:
+$$ Pr[-z\lt\frac{f-p}{\sqrt{p(1-p)/N}}\lt z] = c$$
+
+### Confrontare l'accuratezza di due modelli
+
+Dati due modelli _M1_ e _M2_, qual è il migliore?
+- _M1_: testato su un dataset _D1_ di cardinalità _n1_ con errore _e1_
+- _M2_: testato su un dataset _D2_ di cardinalità _n2_ con errore _e2_
+Se _n1_ ed _n2_ sono abbastanza grandi (>30) il loro errore è approssimabile da una distribuzione normale con media μ e deviazione standard σ.
+$$ e_1\approx N(\mu_1,\sigma_1) \\ e_2\approx N(\mu_2,\sigma_2) 
+\\ \text{la varianza approssimata è: } \\ \hat\sigma^2_i=\frac{e_i(1-e_i)}{n_i}$$
+Come valutare però se la differenza _d_ tra le accuratezze dei due modelli è statisticamente significativa?  
+
+Sia _d_ = _e1 - e2_, d ~ N(d<sub>t</sub>,σ<sub>t</sub> dove d<sub>t</sub> è la reale differenza da stimare.  
+La varianza si ottiene come segue:
+$$ \sigma^2_t = \sigma_1^2 + \sigma_2^2 \approxeq \hat\sigma_1^2 + \hat\sigma_2^2 = \frac{e1(1-e1)}{n1}+\frac{e2(1-e2)}{n2}$$
+Infine d<sub>t</sub> (con confidenza 1-α) è:
+$$ d_t = d \plusmn Z_{\frac{\alpha}{2}}\hat\sigma_t $$
 
 
 
-
-
-αβλθ⋅Σ
+αβλθ⋅Σμσ
