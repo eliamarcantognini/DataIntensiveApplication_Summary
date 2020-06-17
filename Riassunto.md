@@ -795,7 +795,3 @@ La presenza di ciascun termine costituisce una feature dei testi. Per confrontar
 
 Un problema importate è reperire tutte le informazioni rilevanti per ogni prodotto in modo sistematico. Molti servizi online danno l'accesso via API alle informazioni, in questo modo altri servizi possono farne uso in modo automatico.  
 Ad esempio Twitter fornisce un API per l'accesso ai tweet pubblicati: da una ricerca sugli ultimi tweet pubblicati, otteniamo informazioni in tempo reale su qualsiasi prodotto, da cui possiamo misurare il grado di soddisfazione verso di esso.  
-
-
-
-αβλθ⋅Σμσ
