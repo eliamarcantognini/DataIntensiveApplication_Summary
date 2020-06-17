@@ -602,6 +602,200 @@ $$ \sigma^2_t = \sigma_1^2 + \sigma_2^2 \approxeq \hat\sigma_1^2 + \hat\sigma_2^
 Infine d<sub>t</sub> (con confidenza 1-α) è:
 $$ d_t = d \plusmn Z_{\frac{\alpha}{2}}\hat\sigma_t $$
 
+# Natural Language Processing
+
+## Dati strutturati e destrutturati
+
+I dati strutturati sono tutti quei dati provvisti di un modello, o schema, capace di descriverli e attribuirgli semantica. Ad esempio il rating di un utente per un prodotto visto nella recommendation.  
+I dati destrutturati sono invece tutti quei dati sprovvisti di un modello in grado di spiegarne formalmente la semantica. Ad esempio le recensioni di un prodotto scritte in linguaggio naturale.  
+
+Il dato destrutturato di maggior interessa è il testo in linguaggio naturale (a.e. italiano). Il testo segue regole linguistiche come sintassi, lessico, grammatica, ma in generale è_ambinguo_ e dipendente dal contesto, senza considerare la possibile presenza di errori (refusi, punteggiatura, verbi sbagliati...) e l'utilizzo costante di elementi non previsti dalla lingua (emoticon, hashtag, abbreviazioni...). I dati testuali destrutturati sono ampiamente diffusi nel mondo del web e la conoscenza ricavabile da essi può avere grande valore.
+
+## Pre-processing di un testo
+
+Del testo è inizialmente disponibile come una sequenza di caratteri in forma non strutturata. Un primo passaggio per l'analisi consiste nel convertirlo in una forma più facilmente interpretabile dal calcolatore.
+
+### Segmentazione (_tokenization_)
+
+La prima operazione compiuta in genere sul testo è la sua _segmentazione_ in elementi sinstattici di base (_token_). L'operazione più comune consiste nello scomporre il testo nelle sue singole parole (_word tokenization_). Testi non brevi possono anche essere dapprima divisi in frasi (_sentence tokenization_).  
+
+#### Word tokenization
+Le parole in una frase si possono separare semplicemente considerando spazi e segni di punteggiatura, esistono però casi particolari e ambigui ("isn't", parole separate da un trattino...). Per una segmentazione accurata è quindi utile integrare regole e modelli specifici della lingua analizzata.  
+
+#### Part of Speech _POS_
+
+Le _part of speech_ sono le classi crammaticaali a cui ciascun elemento di una frase può appartenere (nome, verbo, aggettivo...). Esistono diverse tassonomie di POS, da utlizzare a seconda delle esigenze. La più nota è quella usata dal Penn Treebank.  
+
+Il _POS tagging_ consiste nell'etichettare ciascuna parola estratta dalla segmentazione del testo col suo POS nella frase. Questa operazione deve tenere conto del contesto di ogni parola, in quanto una stessa parola può avere diversi POS. Il POS tagging può essere utile o meno a seconda dei passaggi successivi: è utile ad esempio se si vogliono filtrare parole di tipo specifico o se elaborazioni successive dipendo dai POS mentre non è necessario ad esempio se si vogliono etrarre le parole chiave del documento indipendentemente dalla loro posizione nella fase.  
+
+La seguenza delle parole estratte va spesso ripulita prima di essere utilizzata nelle analisi successive poiché alcuni elementi estratti possono non essere necessari (punteggiatura, html...) e altri elemento possono essere "normalizzati", cioè si possono eliminare le differenze di forma ma non di sostanza (coniugazioni diverse dello stesso verbo...). Per questo, dopo l'estrazione dei token, è spesso prevista una serie di passaggi per modificare la sequenza.  
+
+#### Pulizia
+
+##### Casefolding
+
+Il casefolding consiste nel convertire tutte le parole completamente in minuscolo, è un metodo basilare per uniformare token.
+
+##### Rimozione stopword
+
+Alcune parole di un documento, indipendentemente dal loro ordine, sono indicative dell'argomento trattato. Altre parole, a.e. articoli, preposizioni e congiuzioni, non danno indiciazioni sull'argomento. Queste parole, dette _stopword_, sono spesso rimosse dalla pappresenzatazione di ciascun documento. Ciò si basa su una lista predefinita di stopword, chiamata _stoplist_.
+
+##### Lemmatizzazione
+
+La lemmatizzazione consiste nel sostituire ciascuna parola col suo _lemma_, ovvero la sua forma base presente nel dizionario.
+
+##### Stemming
+
+Diversamente dalla lemmatizzazione, lo _stemming_ ricava da ogni parola la sua radice morfologica. La radice può non essere una parola di senso compiuto mentre il lemma lo è.  
+Lo stemming si usa come alternativa più efficiente alla lemmatizzazione per unificare termini simili. Ovviamente lo stemming è più approssimativo ed il suo utilizzo può comportare una perdita di precisione.
+
+## Full Text Search
+
+Le interrogazioni viste finora su database sono eseguite su dati strutturati con ottimizzazione dell'efficienza. L'information Retrieval si occupa della ricerca di testo in documenti, ossia in testo non strutturato, ciò richiede l'estrazione e indicizzazione die termini in ogni documento. L'indicizzazione è preceduta dalle teniche di pre-processing suddette.  
+Se la query contiene più termini, occorre specificare come si combinano. Devono compararire tutti? Devono essere vicini?  
+Si possono volere individuare anche termini simili a quelli scritti esplicitamente.  
+Per soddisfare al meglio la query dell'utente i documenti individuati devono essere elencati a partire dal più rilevante e la ricerca deve essere il più efficiente possibile.
+
+### Compromesso tra esattezza e completezza
+
+Data una o più query di test (con documenti rilevanti noti), è possibile misurare la bontà del sistema in termini di:
+- ***precision***: percentuale di documenti rilevanti tra quelli restituiti
+- ***recall***: percentuale di documenti rilevanti restituiti tra tutti quelli rilevanti nella collezione
+
+Tendenzialmente, cambiando i parametri di un sistema _FTS_ per migliorare uno dei due aspetti, l'altro peggiora.
+
+### Modelli
+
+La disciplina dell'Information Retrieval ha elaborato diversi modelli per rappresentare e recuperare documenti. Data un'interrogazione, il modello determina quali sono i documenti rilevanti e/o quanto ciascuno di essi lo è.  
+I modelli proposti possono essere classificati in base alle teorie matematiche su cui sono definito o in base alla considerazione dell'interdipendenza dei termini.
+
+#### Modello booleano standard
+
+Nel modello booleano, i documenti sono semplicemente divisi tra rilevanti e non ad un'interrogazione, senza un ordine preciso.  
+Ad un generico termine di ricerca viene associato un insieme di documenti rilevanti, quelli che contengono il termine.  
+I termini posso essere combinati con operatori logici, a cui corrispondo diverse operazioni sugli insiemi:
+- A _AND_ B (congiunzione logica): _intersezione_ tra l'insieme di documenti rilevanti per A quelli rilevanti per B
+- A _OR_ B (disgiunzione logica): _unione_ tra gli insiemi di documenti
+  
+Il pro di questo modello è che è concettualmente semplice e facile da implementare. Di contro ha che restituisce i documenti senza un ordine significativo e spesso in quantità troppo alta o troppo bassa.  
+
+#### Estrarre la semantica di un test
+
+Una comprensione completa ed esatta del significato di un testo è molto complessa per un calcolatore, è opportuno utilizzare tecniche che simulino il ragionamento umano, quali ad esempio il _deep learning_. D'altra parte però la comprensione esatta è spesso non necessaria.  
+Per capire il significato di un testo, è necessario conoscere le parole esistenti e come queste siano in relazione tra loro. Gli algoritmi per l'analisi testuale (soprattutto semantica) usano spesso delle basi di conoscenza esterne del linguaggio.
+
+#### WordNet
+
+_WordNet_ è tra i più noti database lessicali della lingua inglese.  
+Le principali relazioni semantiche in _WordNet_ sono:
+- Iponimia: "essere un (tipo specifico di)", _is-a_
+- Meronimia: "essere parte/membro/sostanza di"
+- Implicazione: un'azione ne comporta un'altra
+- Antonimia: "essere opposto di" (relazione lessicale)
+
+#### Word Sense Disambiguation
+
+La _Word Sense Disambiguation_ è la procedura che associa ad ogni parola in un testo il suo significato esatto. La _WSD_ richiede una base di conoscenza che associ ad ogni parola i significati possibili.  
+La disambiguazione avviene in genere in base al contesto di ciascuna parola, ovvero le parole vicine ad essa. Ad esempio, l'algoritmo di Lest considera il significato la cui definizione ha il maggior numero di parole presenti vicino al termine nel testo.  
+
+#### Named Entity Recognition
+
+Una _named entity_ è una specifica entità a cui ci si può riferire per nome in un testo. La _named entity recognition_ consiste nell'individuare le named entity in un testo e classificarle per tipo.
+
+#### Rappresentare il contenuto di un testo
+
+Nell'analisi di testi serve spesso rappresentare il contenuto generale di un documento in modo strutturato e compatto. Le parole contenute in un documento sono in genere indicative del suo contenuto. D'altra parte, non sono strettamente necessarie informazioni quali l'ordine delle parole o la loro _POS_.
+
+##### Bag of Words
+
+Una _Bag of Words_ (_BOW_) è una rappresentazione in forma di multiset delle parole contenute in un'unità di testo (un documento). Si tratta di un elenco delle parole distinte presenti nel testo, con associata a ciascuna il numero di occorrenze in esso.  
+Normalizzando le parole in fase di pre-processing, si riduce il numero di parole distinte, semplificando i passi successivi.  
+
+###### _n_-gram
+
+Gli _n_-gram sono sequenze di _n_ parole presenti in un testo, se _n_=2 si parla di _bigram_, se _n_=3 si parla di _trigram_.  
+Possono rendere più completo il _BOW_ di un testo, includendo termini composti di più parole ("New York", "Bag of Words"...), sono però inclusi anche molti _n_-gram non significativi e il numero totale è molto alto.  
+
+###### Rappresentazione vettoriale
+
+Si consideri di definire un insieme _D_ (dizionario) di termini distinti che si potrebbero trovare in un documento di testo. Il _BOW_ di ciascun documento può essere rappresentato come un vettore di |_D_| elementi in cui l'_i_-esimo valore è il numero di occorrenze dell'_i_-esimo termine o in alternativa si può considerare un vettore binario con 1 per le parole presenti e 0 per le assenti.
+
+#### Vector Space Model
+
+Il _Vector Space Model_ prevede di rappresentare un insieme di _N_ documenti come vettori in un medesimo spazio. Lo spazio ha un numero di dimensioni _D_ pari al numero di parole considerate nel dizionario condiviso. L'insieme di documenti si può rappresentare in una matrice termini-documenti di dimensioni _DxN_ in cui l'elementi _i,j_ indica quante volte la parola _i_ appare nel documento _j_.
+
+#### Term weighting
+
+Ogni documento contiene termini più o meno significativi per caratterizzare il suo contenuto. Il numero di occorrenze costituisce un'indicazione immediata del "peso" di un termine all'interno di un documento, esistono però diversi schemi di _term weighting_ per ottenere pesi più accurati sulla base di altre informazioni.
+
+#### TF-IDF e Vector Space Model
+
+Nel _VSM_ occorre determinare come assegnare i valori (pesi) a ciascunt termine in ciascun vettore.  
+_tf_ (term frequency) è il fattore locale, che pesa la rilevanza di ciascun termine in ciascuno dei singoli documenti, è cioè il numero di apparizioni del termine nel documento.  
+_idf_ (inverse document frequency) è il fattore globale, che pesa l'importanza di ciascun termine nell'intera collezione, è quindi più alto per termini che compaiono in meno documenti, in quanto più utili a distinguere questi documenti dagli altri.  
+Il _tf-idf_ per un termine _t_ e un documento _d_ è il prodotto dei logaritmi (log perché l'importanza dei termini non cresce linearmente con la loro frequenza) di _tf_ e _idf_.
+$$ tf.idf(t,d)=\log(f(t,d))\cdot log(\frac{|D|}{|d\isin{D}:t\isin{d}})$$
+
+#### Normalizzazione dei vettori
+
+Per garantire pari peso a documenti di lunghezze diversa, si usa normalizzare i vettori ottenuti in seguito al term weighting
+$$ w(t,d)_{norm} = \frac{w(t,d)}{\sqrt{\sum_{t\isin{D}}w(t,d)^2}} $$
+La normalizzazione mantiene la direzione del vettore, che indica la frequenza relativa tra le parole e quindi l'argomento.
+
+#### Similarità coseno
+
+Rappresentando i documenti come vettori nel medesimo spazio, possiamo misurarne la similarità con diverse metriche. Per confrontare coppie di documenti si usa spesso la similarità coseno, pari al cosegno dell'angolo tra i vettori
+$$ cos(a,b)=\frac{a\cdot b}{||a|| \cdot ||b||} = 
+\frac{\sum_{i=1}^na_i\cdot b_i}{\sqrt{\sum_{i=1}^na_i^2}\cdot \sqrt{\sum_{i=1}^nb_i^2}}$$
+Per vettori con tutti valori positivi, la similarità coseno è sempre inclusa tra 0 (angolo 90°, i documento non hanno parole in comune) e 1 (angolo 0°, i vettori hanno la stessa direzione).
+
+#### Vector Space Model vs Modello booleano
+
+In risposta ad una query, col _VSM_ si ottiene un ranking effettivo dei documenti, dal più rilevante a scendere. Non è però possibile usare espressioni booleane AND e OR! Per questo esistono modelli estesi che combinano _VSM_ e logica booleana: il modello booleano esteso prima recupera i documenti che soddisfano la proposizione booleana, poi il risultato è ordinato calcolando i rank dei documenti. Quindi il modello esteso aumenta il potere espressivo del _VSM_ con proposizione booleane.  
+
+#### Modelli con dipendenze tra termini
+
+Nei modelli visti finora, ciascun termine è considerato a se stante e indipendente da tutti gli altri. In altri modelli sono considerate esplicitamente dipendenze reciproche tra termini.  
+La _Latent Semantic Analysis_ traspone documenti e query in un nuovo spazio dove le dimensioni corrispondono idealmente a concetti semantici, ciascuno dato da un autovettore nello spazio originale.  
+
+#### Ricerca di un termine 
+
+Per ottenere la lista di documenti rilevanti ad una query, bisogna individuare in quali documenti compaiono i termini ricercati. La soluzione più facile, quando si vuole ricercare un termine, è una ricerca sequenziale su tutti i documenti, verificando la rilevanza di ciascuno alla query. Questo comporta necessariamente tempi lunghi.
+
+##### Indicizzazione
+
+Per ricerche più efficienti si utilizzano degli indici.  
+Una struttura tipica è l'indice inverso (_inverted index_) che associa ad ogni termine la lista di documenti in cui compare. Dato un termine, l'accessio avviene in un tempo minimo e costante _O(1)_ alla lista di documenti.  
+L'indice si costruisce e mantiene aggiornato associando un documento a ciascun termine che appare in esso
+
+## Machine Learning e classificazione
+
+Le tecniche di _machine learning_ permettono di apprendere conoscenza dai dati per effettuare predizioni su di essi_.  
+Un problema comune consiste nel _classificare_ i dati, ovvero dividerli tra due o più gruppi (classi) secondo criteri specifici.   
+Per automatizzare questa operazione si possono usare algoritmi di apprendimento supervisionato: l'algoritmo analizza un insieme di dati (training set) pre-etichettati con i rispettivi gruppi di appartenenza ed estrare un modello di conoscenza; il modello è usato come classificatore per predire le classi di appartenenza di dati simili.
+
+### Algoritmi di apprendimento supervisionato
+
+Esiste una grande varietà di algoritmi di apprendimento, che generano diversi tipi di modelli di conoscenza:
+- modelli probabilistici (a.e. _naive Bayes_): calcola la classe di appartenenza più probabile in base alle caratteristiche dell'oggetto
+- k-nearest neighbor: verifica quale sia la classe più ricorrente tra i k oggetti del training set con caratteristiche più simili a quello dato
+- e altri come alberi decisionali, SVM, reti neurali...
+
+Necessario è definire le caratteristiche (_feature_) degli oggetti, tramite un'adeguata rappresentazione strutturata. Una soluzione tipica è rappresentare ciascun oggetto come un vettore in un unico spazio multidimensionale.
+
+## Esempio - Customer satisfaction da dati testuali
+
+In un'attività di e-commerce, è importante sapere il grado di soddisfazione dei clienti in relazione ai singoli prodotti. A questo fine, le loro recensioni sono un dato importante.  
+Leggendo le recensioni, si possono spesso individuare parole specifiche che indicano la soddisfazione o meno dell'utente.  
+Sarebbe utile, avendo delle recensioni, estrarre in automatico conoscenza sulle parole usate nel contesto specifico; usando recensioni pre-etichettate come positive e negative, si potrebbero cercare le parole chiave tra quelle ricorrenti.  
+
+Col _machine learning_ è possibile estrarre un classificatore da recensioni pre-etichettate come positive e negative. Il modello ottenuto potrà essere usato per stimare la polarità di altre recensioni dello stesso contesto.  
+Per trattare i testi, è necessario rappresentarli come vettori: possiamo usare il Vector Space Model.  
+La presenza di ciascun termine costituisce una feature dei testi. Per confrontare due testi tra loro si può usare la similarità coseno.  
+
+Un problema importate è reperire tutte le informazioni rilevanti per ogni prodotto in modo sistematico. Molti servizi online danno l'accesso via API alle informazioni, in questo modo altri servizi possono farne uso in modo automatico.  
+Ad esempio Twitter fornisce un API per l'accesso ai tweet pubblicati: da una ricerca sugli ultimi tweet pubblicati, otteniamo informazioni in tempo reale su qualsiasi prodotto, da cui possiamo misurare il grado di soddisfazione verso di esso.  
+
 
 
 αβλθ⋅Σμσ
